@@ -44,7 +44,7 @@ static ssize_t readfromto(int fdfrom, int fdto, char* buf, unsigned int buf_size
 int main(int argc, char *argv[])
 {
     const int buf_size = (1024 * 8);
-    int status;
+    int exitcode;
     int master;
     int fromfd;
     bool shouldstop;
@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
     char buf[buf_size];
     fd_set fds;
     ssize_t bytes_read;
+    exitcode = 0;
     if (argc < 2)
     {
         return EX_USAGE;
@@ -72,17 +73,16 @@ int main(int argc, char *argv[])
     else
     {
         /* back to parent */
-        status = 0;
-        if (waitpid(child, &status, 0) == -1)
+        if (waitpid(child, &exitcode, 0) == -1)
         {
             /* handle error... however that would look like... */
         }
         /*fprintf(stderr, "back at parent, exit status was %d\n", status);*/
-        if(status != 0)
+        if(exitcode != 0)
         {
-            status = 1;
+            exitcode = 1;
         }
-        exit(status);
+        
     }
     /* trap kill signals and forward them to child process */
     signal(SIGHUP, sighandler);
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
                         perror("failed to write to stdout");
                         return EX_OSERR;
                     }
-                    return EXIT_SUCCESS;
+                    return exitcode;
                 }
             }
             else if(FD_ISSET(STDIN_FILENO, &fds))
@@ -122,5 +122,5 @@ int main(int argc, char *argv[])
             }*/
         }
     }
-    return 0;
+    return exitcode;
 }
