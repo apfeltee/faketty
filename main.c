@@ -44,6 +44,7 @@ static ssize_t readfromto(int fdfrom, int fdto, char* buf, unsigned int buf_size
 int main(int argc, char *argv[])
 {
     const int buf_size = (1024 * 8);
+    int status;
     int master;
     int fromfd;
     bool shouldstop;
@@ -67,6 +68,21 @@ int main(int argc, char *argv[])
         execvp(argv[1], argv + 1);
         perror("failed to execute command");
         return EX_OSERR;
+    }
+    else
+    {
+        /* back to parent */
+        status = 0;
+        if (waitpid(child, &status, 0) == -1)
+        {
+            /* handle error... however that would look like... */
+        }
+        /*fprintf(stderr, "back at parent, exit status was %d\n", status);*/
+        if(status != 0)
+        {
+            status = 1;
+        }
+        exit(status);
     }
     /* trap kill signals and forward them to child process */
     signal(SIGHUP, sighandler);
